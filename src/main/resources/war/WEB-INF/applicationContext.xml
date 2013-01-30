@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd"           
+    >
+
+		<import resource="jmx.xml"/>
+	
+	
+	
+	<bean id="sftpSessionFactory" class="org.helios.ember.sftp.SFTPSessionFactory">
+		<property name="sftpUrl" value="sftp://%s@%s%s"/>		
+		<property name="fileSystemManager" ref="fileSystemManager"/>
+	</bean>
+	
+	<bean id="sftpService" class="org.helios.ember.api.SFTPService">
+		<property name="sessionFactory" ref="sftpSessionFactory" />
+	</bean>
+	<bean id="sessionManager" class="org.helios.ember.api.SessionManager"/>
+	
+	<bean id="fileSystemManager" class="org.helios.ember.sftp.SFTPFileSystemManager"/>
+	
+</beans>

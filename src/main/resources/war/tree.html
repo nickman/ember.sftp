@@ -1,0 +1,65 @@
+<html>
+  <head>
+    <script src="javascripts/jquery.js" type="text/javascript" charset="utf-8"></script>
+    <script src="javascripts/ember.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" charset="utf-8">
+ 
+      App = Ember.Application.extend();
+      
+      App.Node = Ember.Object.extend({
+        name: null,
+        children: []
+      });
+ 
+      App.tree = App.Node.create({
+        name: "Node 1",
+        children: [
+          App.Node.create({
+            name: "Node 2",
+            children: [
+              App.Node.create({
+                name: "Leaf 2",
+                children: []
+              })
+            ]
+          }),
+          App.Node.create({
+            name: "Leaf 1",
+            children: []
+          })
+        ]
+      });
+      
+    </script>
+ 
+    <script type='text/x-handlebars' data-template-name='node-template'>
+      <div>Name: {{name}}</div>
+      <div>
+        {{#each children}}
+          {{#with this}}
+            <div style="margin-left: 18px;">{{view App.nodeView }}</div>
+          {{/with}}
+        {{/each}}
+      </div>
+    </script>
+ 
+    <script type="text/javascript" charset="utf-8">
+      App.nodeView = Ember.View.extend({
+        templateName: 'node-template'
+      });
+ 
+      $(function(){
+        var root = App.nodeView.create({
+          name: App.tree.get("name"),
+          children: App.tree.get("children")
+        });
+        
+        root.append();
+      });
+    </script>
+ 
+  </head>
+  <body>
+ 
+  </body>
+</html>

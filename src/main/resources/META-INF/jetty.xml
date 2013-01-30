@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+
+	 <import resource="jmx.xml"/>
+    
+      <bean id="JettyThreadPool" class="org.eclipse.jetty.util.thread.QueuedThreadPool">
+        <property name="minThreads" value="10"/>
+        <property name="maxThreads" value="50"/>
+        <property name="daemon" value="true"/>        
+      </bean>
+
+      <bean id="HttpConnector" class="org.eclipse.jetty.server.nio.SelectChannelConnector">
+        <property name="port" value="8161"/>
+        <property name="statsOn" value="true" />
+        <property name="host" value="0.0.0.0" ></property>
+      </bean>
+	
+
+
+	<bean name="HttpServer" class="org.eclipse.jetty.server.Server" 
+		lazy-init="false" destroy-method="stop" init-method="start">
+	   <property name="connectors">
+	      <list>
+	      	<ref bean="HttpConnector" />
+	      </list>	      
+	    </property>
+         <property name="handler" ref="JettyHandlers"/>            
+	    <property name="threadPool" ref="JettyThreadPool"/>
+	</bean>
+	
+      <bean id="JettyHandlers" class="org.eclipse.jetty.server.handler.HandlerCollection">
+        <property name="handlers">
+          <list>
+          	<ref bean="EmberWar" />
+          </list>
+        </property>
+        <property name="server" ref="HttpServer" />
+      </bean>
+
+		 
+	  <bean id="EmberWar" class="org.eclipse.jetty.webapp.WebAppContext">
+	  	<description>Ember SFTP Web App</description>
+	      <property name="contextPath" value="/sftp"/>
+	      <property name="displayName" value="Ember SFTP Web App" />
+	      <property name="war" value="./src/main/resources/war" />
+	      <property name="logUrlOnStart" value="true"/>  
+	      <property name="securityHandler" ref="securityHandler" />
+	      <!-- 	      
+	      <property name="attributes">
+	      	<bean id="ctxAttributes" class="org.helios.ember.web.spring.ServletContextAttributes"/>
+	      </property>
+	      -->
+	      <property name="sessionHandler">
+			  <bean id="sessionHandler" class="org.eclipse.jetty.server.session.SessionHandler">
+			  	<property name="sessionManager">
+			  		<bean id="sessionManager" class="org.eclipse.jetty.server.session.HashSessionManager">
+			  		</bean>
+			  	</property>
+			  </bean>
+	      </property>
+	  </bean>
+	  
+  <bean id="pkRepo" class="org.helios.ember.auth.SFTPPrivateKeyRepository"/>	  
+  <bean id="loginService" class="org.helios.ember.auth.SSHLoginService">
+  	<property name="pkRepo" ref="pkRepo"/>
+  </bean>
+  
+  <!-- 
+  <bean id="loginService" class="org.eclipse.jetty.security.HashLoginService">
+        <property name="name" value="sftp" />
+        <property name="config" value="./src/main/resources/war/WEB-INF/realm.properties" />
+  </bean>
+  -->
+
+  <bean id="constraints" class="org.eclipse.jetty.util.security.Constraint">
+        <property name="name" value="BASIC" />
+        <property name="authenticate" value="true" />
+        <property name="roles" value="foo" />
+  </bean>
+  
+   <bean id="constraintMapping" class="org.eclipse.jetty.security.ConstraintMapping">
+        <property name="pathSpec" value="/*" />
+        <property name="constraint" ref="constraints" />
+  </bean>
+
+  <bean id="securityHandler" class="org.eclipse.jetty.security.ConstraintSecurityHandler">
+        <property name="constraintMappings">
+                <list>
+                        <ref bean="constraintMapping"/>
+                </list>
+        </property>
+        <!-- <property name="roles" value="user,GSF,ABC" /> -->
+        <property name="authenticator">
+                <bean class="org.eclipse.jetty.security.authentication.BasicAuthenticator" />
+        </property>
+        <property name="realmName" value="sftp" />
+        <property name="loginService" ref="loginService" />
+        <property name="strict" value="false" />
+  </bean>
+	  
+	<bean id="jettyExporter" class="org.springframework.jmx.export.MBeanExporter">
+		<property name="beans">
+			<map>
+				<entry key="org.helios.ember.jetty:service=JettyThreadPool" value-ref="JettyThreadPool" />				
+				<entry key="org.helios.ember.jetty:service=HttpConnector" value-ref="HttpConnector" />
+				<entry key="org.helios.ember.jetty:service=HttpServer" value-ref="HttpServer" />
+				<entry key="org.helios.ember.jetty:service=EmberWar" value-ref="EmberWar" />
+				<entry key="org.helios.ember.jetty:service=LoginService" value-ref="loginService" />
+				<entry key="org.helios.ember.jetty:service=SecurityConstraints" value-ref="constraints" />
+				<entry key="org.helios.ember.jetty:service=ConstraintMapping" value-ref="constraintMapping" />
+				<entry key="org.helios.ember.jetty:service=SecurityHandler" value-ref="securityHandler" />
+			</map>
+		</property>
+		<property name="server" ref="MBeanServer" />
+	</bean>	
+	
+	  
+	<!-- 	
+	  <bean id="JolokiaWar" class="org.eclipse.jetty.webapp.WebAppContext">
+	  <description>The Jolokia JMX Web App</description>
+	      <property name="contextPath" value="/jmx"/>
+	      <property name="displayName" value="The Jolokia JMX Web App" />
+	      <property name="war" value="./src/test/resources/jolokia.war" />
+	      <property name="logUrlOnStart" value="true"/>  
+	  </bean>
+	-->	
+	
+           
+</beans>           
