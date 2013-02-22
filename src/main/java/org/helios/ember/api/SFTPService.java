@@ -116,7 +116,11 @@ public class SFTPService implements ApplicationContextAware, InitializingBean {
 			path = ".";
 		}
 		HttpSession session = request.getSession();
+		boolean newSession = session.isNew();
 		SessionLogin sessionLogin = (SessionLogin)securityContext.getUserPrincipal();
+		if(newSession) {
+			session.setAttribute("auth", sessionLogin);
+		}
 		
 		try {
 			FileObject fo = getFileObject(sessionLogin, path);
