@@ -16,7 +16,7 @@
       </bean>
 
       <bean id="HttpConnector" class="org.eclipse.jetty.server.nio.SelectChannelConnector">
-        <property name="port" value="8161"/>
+        <property name="port" value="9161"/>
         <property name="statsOn" value="true" />
         <property name="host" value="0.0.0.0" ></property>
       </bean>
